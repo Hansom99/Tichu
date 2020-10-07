@@ -11,6 +11,8 @@ public class CardBehaviour : MonoBehaviourPunCallbacks
 
     bool selected = false;
 
+    bool clickable = true;
+
 
     // Start is called before the first frame update
     void Start()
@@ -33,6 +35,7 @@ public class CardBehaviour : MonoBehaviourPunCallbacks
 
     private void OnMouseUpAsButton()
     {
+        if (!clickable) return;
         if (selected)
         {
             transform.Translate(0, 0, -1);
@@ -46,6 +49,18 @@ public class CardBehaviour : MonoBehaviourPunCallbacks
             transform.root.GetComponent<PlayerManager>().select(this.gameObject);
         }
         
+    }
+
+    public void setClickable(bool clickable)
+    {
+        this.clickable = clickable;
+        photonView.RPC("RpcSetClickable", RpcTarget.All, clickable);
+    }
+
+    [PunRPC]
+    void RpcSetClickable(bool clickable)
+    {
+        this.clickable = clickable;
     }
 
 }

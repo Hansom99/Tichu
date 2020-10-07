@@ -1,4 +1,5 @@
 ﻿using Photon.Pun;
+using Photon.Realtime;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -15,11 +16,19 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     public Transform[] spawnPoint;
 
+    public Transform table;
+
     public int myNumber;
 
     public PhotonView PV;
 
     public Card[] allCards = new Card[56];
+
+    public PlayerManager myPlayerManager;
+
+    public Player currentPlayer;
+
+    public Player belongsTo;
 
 
     // Start is called before the first frame update
@@ -39,7 +48,7 @@ public class GameManager : MonoBehaviourPunCallbacks
 
 
             myPlayer = PhotonNetwork.Instantiate(this.playerPrefab.name, spawnPoint[myNumber].position, spawnPoint[myNumber].rotation, 0);
-            myPlayer.GetComponent<PlayerManager>().myNumber = myNumber;
+            myPlayerManager = myPlayer.GetComponent<PlayerManager>();
         }
         if (PhotonNetwork.IsMasterClient) 
         {
@@ -47,7 +56,7 @@ public class GameManager : MonoBehaviourPunCallbacks
             
             for (int i = 0; i < allCards.Length; i++)
             {
-                allCards[i] = new TichuCard(i + 2);
+                allCards[i] = new TichuCard(i);
             }
             RNGCryptoServiceProvider rnd = new RNGCryptoServiceProvider();
             allCards = allCards.OrderBy(x => GetNextInt32(rnd)).ToArray();
@@ -67,15 +76,46 @@ public class GameManager : MonoBehaviourPunCallbacks
     {
         Debug.Log(cards.Length);
 
+       
 
         for (int i = 0; i < allCards.Length; i++)
         {
             allCards[i] = new TichuCard(cards[i]);
         }
-        Card[] tmp = new Card[14];
-        Array.Copy(allCards, myNumber*14,tmp ,0, 14);
+        //Card[] tmp = new Card[14];
+        //Array.Copy(allCards, myNumber*14,tmp ,0, 14);
 
-        myPlayer.GetComponent<PlayerManager>().myCards = new List<Card>(tmp);
+        //myPlayer.GetComponent<PlayerManager>().myNumber = myNumber;
+        //myPlayer.GetComponent<PlayerManager>().myCards = new List<Card>(tmp);
+        
+
+        Debug.Log("Cards Set:" + allCards.Length);
+
+        photonView.RPC("sncCards", RpcTarget.All, myPlayer.GetPhotonView().ViewID, myNumber);
+
+    }
+
+    [PunRPC]
+    void sncCards(int id, int playerNumber)
+    {
+        //while (allCards.Length == 0) ;
+
+        //this.myNumber = myNumber;
+        Card[] tmp = new Card[14];
+        Array.Copy(allCards, playerNumber * 14, tmp, 0, 14);
+        foreach(Card c in tmp)
+        {
+            if(c.value == 53 && PhotonNetwork.IsMasterClient)
+            {
+                setCurrentPlayer(0,0);
+                break;
+            }
+        }
+        GameObject player = PhotonView.Find(id).gameObject;
+        player.GetComponent<PlayerManager>().myNumber = myNumber;
+        player.GetComponent<PlayerManager>().gameManager = this;
+        player.GetComponent<PlayerManager>().myCards = new List<Card>(tmp);
+
 
     }
 
@@ -98,6 +138,62 @@ public class GameManager : MonoBehaviourPunCallbacks
             }
         }
         
+    }
+
+    public void setCurrentPlayer(int number,int belongs)
+    {
+        photonView.RPC("SetCurrentPlayer", RpcTarget.All, number,belongs);
+
+        
+    }
+
+    [PunRPC]
+    void SetCurrentPlayer(int number,int belongs)
+    {
+        Debug.Log(number + " " + belongs);
+        currentPlayer = PhotonNetwork.PlayerList[number];
+
+        if(PhotonNetwork.IsMasterClient && belongs == -1)
+        {
+            //Round over
+            if (belongsTo == currentPlayer) endRound();
+        }
+        else if (PhotonNetwork.IsMasterClient)
+        {
+            setBelongsTo(belongs);
+        }
+        
+
+    }
+    void endRound()
+    {
+        Card[] stich = new Card[table.transform.childCount];
+
+        for (int i = 0; i < table.transform.childCount; i++)
+        {
+            GameObject card = table.transform.GetChild(i).gameObject;
+            stich[i] = card.GetComponent<CardBehaviour>().card;
+            PhotonNetwork.Destroy(card);
+        }
+        Debug.LogError(stich.ToStringFull());
+    }
+
+    [PunRPC]
+    void EndRound()
+    {
+        
+        
+    }
+
+    public void setBelongsTo(int number)
+    {
+        photonView.RPC("SetBelongsTo", RpcTarget.All, number);
+    }
+
+    [PunRPC]
+    void SetBelongsTo(int number)
+    {
+        currentPlayer = PhotonNetwork.PlayerList[number];
     }
 
 

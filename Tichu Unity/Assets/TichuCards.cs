@@ -23,36 +23,36 @@ namespace Tichu
             value = Value;
 
 
-            if (Value < 14)
+            if (Value < 13)
             {   //ROT
                 name = "r" + getName(value);
             }
-            else if (Value < 27)
+            else if (Value < 26)
             {   //Blau
-                name = "b" + getName(value % 14);
+                name = "b" + getName(value % 13);
             }
-            else if (Value < 40)
+            else if (Value < 39)
             {   //Grün
-                name = "g" + getName(value % 14);
+                name = "g" + getName(value % 13);
             }
-            else if (Value < 53)
+            else if (Value < 52)
             {   //Schwarz
-                name = "s" + getName(value % 14);
+                name = "s" + getName(value % 13);
             }
-            else if (Value == 53) name = "Hund";
-            else if (Value == 54) name = "Eins";
-            else if (Value == 55) name = "Phoenix";
-            else if (Value == 56) name = "Drache";
+            else if (Value == 52) name = "Hund";
+            else if (Value == 53) name = "Eins";
+            else if (Value == 54) name = "Phoenix";
+            else if (Value == 55) name = "Drache";
         }
 
         private string getName(int val)
         {
             string name = "";
-            if (val < 10) name = (val + 1).ToString();
-            if (val == 10) name = "J";
-            if (val == 11) name = "Q";
-            if (val == 12) name = "K";
-            if (val == 13) name = "A";
+            if (val < 9) name = (val + 2).ToString();
+            if (val == 9) name = "J";
+            if (val == 10) name = "Q";
+            if (val == 11) name = "K";
+            if (val == 12) name = "A";
 
 
 

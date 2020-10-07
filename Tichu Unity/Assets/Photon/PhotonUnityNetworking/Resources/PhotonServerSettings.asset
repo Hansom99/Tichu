@@ -40,6 +40,13 @@ MonoBehaviour:
   - RespawnSpaceship
   - SetCards
   - RpcPlay
+  - creatCards
+  - createCards
+  - sncCards
+  - RpcSetClickable
+  - SetCurrentPlayer
+  - SetBelongsTo
+  - EndRound
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1

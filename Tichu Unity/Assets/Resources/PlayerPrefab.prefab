@@ -164,6 +164,9 @@ MonoBehaviour:
   cardHolder: {fileID: 1765239903}
   playButton: {fileID: 0}
   myNumber: 0
+  gameManager: {fileID: 0}
+  cardObjects: []
+  selected: []
 --- !u!114 &2455595673136946693
 MonoBehaviour:
   m_ObjectHideFlags: 0
