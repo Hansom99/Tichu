@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Tichu;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -86,10 +87,23 @@ public class PlayerManager : MonoBehaviourPunCallbacks
         }
         selected.Clear();
 
-        
+        if(myCards.Count == 0)
+        {
+            gameManager.ranking.Add(myNumber);
+            photonView.RPC("RpcRanking", RpcTarget.All, gameManager.ranking.ToArray());
+        }
 
         photonView.RPC("RpcPlay", RpcTarget.All,ids.ToArray(),myNumber);
         gameManager.setCurrentPlayer((myNumber + 1) % 4, myNumber);
+    }
+
+    [PunRPC]
+    void RpcRanking(int[] ranking)
+    {
+        gameManager.ranking.Clear();
+        foreach (int p in ranking) gameManager.ranking.Add(p);
+
+        Debug.LogError(ranking.IntToString());
     }
 
     [PunRPC]
@@ -98,6 +112,10 @@ public class PlayerManager : MonoBehaviourPunCallbacks
         for(int i = 0; i < ids.Length; i++)
         {
             GameObject card = PhotonView.Find(ids[i]).gameObject;
+            if (PhotonNetwork.IsMasterClient)
+            {
+                card.GetPhotonView().TransferOwnership(PhotonNetwork.MasterClient);
+            }
             card.transform.parent = gameManager.table;
             card.transform.position = gameManager.table.position;
             card.transform.rotation = Quaternion.identity;

@@ -30,10 +30,17 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     public Player belongsTo;
 
+    public int[] playerPoints = new int[4] {0,0,0,0 };
+
+    public int[] teamPoint = new int[2] {0,0 };
+
+    public List<int> ranking = new List<int>();
 
     // Start is called before the first frame update
     void Start()
     {
+        teamPoint[0] = 0;
+        teamPoint[1] = 0;
         getNumber();
         Debug.Log(myNumber);
 
@@ -52,23 +59,32 @@ public class GameManager : MonoBehaviourPunCallbacks
         }
         if (PhotonNetwork.IsMasterClient) 
         {
-            int[] cardValue = new int[56];
-            
-            for (int i = 0; i < allCards.Length; i++)
-            {
-                allCards[i] = new TichuCard(i);
-            }
-            RNGCryptoServiceProvider rnd = new RNGCryptoServiceProvider();
-            allCards = allCards.OrderBy(x => GetNextInt32(rnd)).ToArray();
-            for (int i = 0; i < allCards.Length; i++) cardValue[i] = allCards[i].value;
-            
-
-            photonView.RPC("SetCards", RpcTarget.All, cardValue);
+            startGame();
         }
 
 
 
     }
+
+    void startGame()
+    {
+        int[] cardValue = new int[56];
+
+        for (int i = 0; i < allCards.Length; i++)
+        {
+            allCards[i] = new TichuCard(i);
+        }
+        RNGCryptoServiceProvider rnd = new RNGCryptoServiceProvider();
+        allCards = allCards.OrderBy(x => GetNextInt32(rnd)).ToArray();
+        for (int i = 0; i < allCards.Length; i++) cardValue[i] = allCards[i].value;
+
+
+        photonView.RPC("SetCards", RpcTarget.All, cardValue);
+        
+
+    }
+
+    
 
 
     [PunRPC]
@@ -76,7 +92,8 @@ public class GameManager : MonoBehaviourPunCallbacks
     {
         Debug.Log(cards.Length);
 
-       
+        ranking = new List<int>();
+        playerPoints = new int[4] { 0, 0, 0, 0 };
 
         for (int i = 0; i < allCards.Length; i++)
         {
@@ -98,8 +115,9 @@ public class GameManager : MonoBehaviourPunCallbacks
     [PunRPC]
     void sncCards(int id, int playerNumber)
     {
+        Debug.Log("Received");
         //while (allCards.Length == 0) ;
-
+        setCurrentPlayer(0, 0);
         //this.myNumber = myNumber;
         Card[] tmp = new Card[14];
         Array.Copy(allCards, playerNumber * 14, tmp, 0, 14);
@@ -107,7 +125,7 @@ public class GameManager : MonoBehaviourPunCallbacks
         {
             if(c.value == 53 && PhotonNetwork.IsMasterClient)
             {
-                setCurrentPlayer(0,0);
+                //setCurrentPlayer(0,0);
                 break;
             }
         }
@@ -142,30 +160,73 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     public void setCurrentPlayer(int number,int belongs)
     {
-        photonView.RPC("SetCurrentPlayer", RpcTarget.All, number,belongs);
-
+        while(ranking.Contains(number))
+        {
+            number = (number + 1) % 4;
+        }
+        if (ranking.Count == 3 && belongs != -1) endGame(number,belongs);
+        else photonView.RPC("SetCurrentPlayer", RpcTarget.All, number, belongs);
         
+
+
     }
 
     [PunRPC]
     void SetCurrentPlayer(int number,int belongs)
     {
-        Debug.Log(number + " " + belongs);
+        Debug.Log(myNumber+" "+number + " " + belongs);
         currentPlayer = PhotonNetwork.PlayerList[number];
-
-        if(PhotonNetwork.IsMasterClient && belongs == -1)
+        Debug.Log(currentPlayer.NickName);
+        if (PhotonNetwork.IsMasterClient && belongs == -1)
         {
             //Round over
-            if (belongsTo == currentPlayer) endRound();
+            if (belongsTo == currentPlayer) endRound(number);
         }
         else if (PhotonNetwork.IsMasterClient)
         {
+            
             setBelongsTo(belongs);
         }
         
 
     }
-    void endRound()
+    void endGame(int last,int winner)
+    {
+
+        photonView.RPC("EndGame", RpcTarget.All, last,winner);
+    }
+    [PunRPC]
+    void EndGame(int last,int winner)
+    {
+        Debug.LogError("EndGame");
+        ranking.Add(last);
+        endRound(winner);
+
+        GameObject[] lastCards = GameObject.FindGameObjectsWithTag("Card");
+
+        foreach(GameObject c in lastCards)
+        {
+            playerPoints[winner] += c.GetComponent<CardBehaviour>().card.points;
+            if (PhotonNetwork.IsMasterClient) PhotonNetwork.Destroy(c);
+        }
+
+
+       
+       
+
+        playerPoints[ranking[0]] += playerPoints[last];
+        playerPoints[last] = 0;
+
+        teamPoint[0] += playerPoints[0] + playerPoints[2];
+        teamPoint[1] += playerPoints[1] + playerPoints[3];
+
+        if (PhotonNetwork.IsMasterClient)
+        {
+           // startGame();
+        }
+    }
+
+    void endRound(int winner)
     {
         Card[] stich = new Card[table.transform.childCount];
 
@@ -173,16 +234,22 @@ public class GameManager : MonoBehaviourPunCallbacks
         {
             GameObject card = table.transform.GetChild(i).gameObject;
             stich[i] = card.GetComponent<CardBehaviour>().card;
-            PhotonNetwork.Destroy(card);
+            if (PhotonNetwork.IsMasterClient) {
+                card.GetPhotonView().TransferOwnership(PhotonNetwork.MasterClient);
+                PhotonNetwork.Destroy(card);
+            }
         }
-        Debug.LogError(stich.ToStringFull());
+        if (stich[stich.Length - 1].name == "Drache") winner = getStichTo();
+        foreach(Card c in stich) playerPoints[winner] += c.points;
+        photonView.RPC("EndRound", RpcTarget.All, playerPoints);
+        Debug.LogError(stich[0].name);
     }
 
     [PunRPC]
-    void EndRound()
+    void EndRound(int[] points)
     {
-        
-        
+        playerPoints = points;
+        Debug.LogError("Endround");
     }
 
     public void setBelongsTo(int number)
@@ -193,7 +260,17 @@ public class GameManager : MonoBehaviourPunCallbacks
     [PunRPC]
     void SetBelongsTo(int number)
     {
-        currentPlayer = PhotonNetwork.PlayerList[number];
+        belongsTo = PhotonNetwork.PlayerList[number];
+    }
+
+    //
+    /// <summary>
+    /// MUSSS ich noch tun!
+    /// </summary>
+    /// <returns></returns>
+    int getStichTo()
+    {
+        return 1;
     }
 
 

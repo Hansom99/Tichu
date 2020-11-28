@@ -8,6 +8,14 @@ namespace Tichu
     {
         public int value { get;}
         public string name { get;}
+        public int points {get
+            {
+                if (name[1] == 'K' || name[1] == '1') return 10;
+                if (name[1] == '5') return 5;
+                if (name == "Drache") return 25;
+                if (name == "Phoenix") return -25;
+                return 0;
+            } }
 
         public TichuCard(string setName)
         {

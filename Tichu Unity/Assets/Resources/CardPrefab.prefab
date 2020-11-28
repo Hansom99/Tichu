@@ -17,7 +17,7 @@ GameObject:
   - component: {fileID: -535359812196286157}
   m_Layer: 0
   m_Name: CardPrefab
-  m_TagString: Untagged
+  m_TagString: Card
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -63,7 +63,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: f97a1ca950bd319429f3aecaf987526b, type: 2}
+  - {fileID: 2100000, guid: 644c956682945ab4682c0881669dbe5e, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -115,7 +115,7 @@ MonoBehaviour:
   prefixField: -1
   observableSearch: 2
   Synchronization: 3
-  OwnershipTransfer: 0
+  OwnershipTransfer: 1
   ObservedComponents:
   - {fileID: -535359812196286157}
   viewIdField: 0
@@ -186,6 +186,10 @@ MonoBehaviour:
   - {fileID: 2100000, guid: f97a1ca950bd319429f3aecaf987526b, type: 2}
   - {fileID: 2100000, guid: f4b177eae3ffaaf4a935df2af6c1cbc1, type: 2}
   - {fileID: 2100000, guid: 2fa362dddad3cc1478d65f8df7c16755, type: 2}
+  - {fileID: 2100000, guid: 7bae898984b53654fb81777b5ef502e6, type: 2}
+  - {fileID: 2100000, guid: 8e8c8ba9c3be50c47b41802a37add9aa, type: 2}
+  - {fileID: 2100000, guid: fb957ae88dd98aa4a860ae0b065f6ab9, type: 2}
+  - {fileID: 2100000, guid: da13d293efb2d6d41a399c569fbd8c36, type: 2}
 --- !u!114 &-535359812196286157
 MonoBehaviour:
   m_ObjectHideFlags: 0

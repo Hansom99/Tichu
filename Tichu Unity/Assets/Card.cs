@@ -7,6 +7,7 @@ namespace Tichu
     {
         int value { get; }
         string name { get; }
+        int points { get; }
 
 
        

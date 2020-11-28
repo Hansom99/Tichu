@@ -12,7 +12,9 @@ public class UI : MonoBehaviour
     public GameObject gameManagerObject;
     GameManager gameManager;
 
-    public Text NameA, NameB, CurrentPlayer;
+    public Text NameA, NameB, CurrentPlayer, PointsA, PointsB;
+
+    public Slider sliderA, sliderB;
 
 
     private void Start()
@@ -28,9 +30,15 @@ public class UI : MonoBehaviour
         }
         else playButtonText.text = "Play Cards";
 
-        //NameA.text = "TeamA\n" + PhotonNetwork.PlayerList[0].NickName + "\n" + PhotonNetwork.PlayerList[1].NickName;
-       // NameB.text = "TeamB\n" + PhotonNetwork.PlayerList[2]?.NickName + "\n" + PhotonNetwork.PlayerList[3]?.NickName;
+        //NameA.text = "TeamA\n" + PhotonNetwork.PlayerList[0].NickName + "\n" + PhotonNetwork.PlayerList[2].NickName;
+       // NameB.text = "TeamB\n" + PhotonNetwork.PlayerList[1]?.NickName + "\n" + PhotonNetwork.PlayerList[3]?.NickName;
         CurrentPlayer.text = "Waiting for:\n" + gameManager.currentPlayer.NickName;
+
+        PointsA.text = gameManager.teamPoint[0].ToString();
+        PointsB.text = gameManager.teamPoint[1].ToString();
+
+        sliderA.value = gameManager.teamPoint[0];
+        sliderB.value = gameManager.teamPoint[1];
 
     }
 
